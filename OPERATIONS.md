@@ -1,8 +1,8 @@
 # Operations
 ## Wedding Announcement Website
 
-**Status:** Live (Cloudflare Tunnel, `APP_ENV=prod`)
-**Last updated:** 2026-08-11 (§6: `go-prod.sh`/`run-dev.sh` — self-verifying wrappers around `stack.sh restart` that assert the actual process, not just HTTP status, added after a real incident, see below)
+**Status:** Live (Cloudflare Tunnel → `web` on :3000, prod build). `web-dev` (:3001, hot reload) runs permanently alongside for local iteration — never tunneled.
+**Last updated:** 2026-08-15 (§6 rewritten, header status line updated — frontend split into two permanent containers, `web`/prod/:3000 and `web-dev`/dev/:3001, replacing the old single-container `APP_ENV` mode toggle; see TECH_STACK.md §5 for the full architecture change. Previous: 2026-08-11, §6: `go-prod.sh`/`run-dev.sh` — self-verifying wrappers around `stack.sh restart` that assert the actual process, not just HTTP status, added after a real incident — both scripts are now retired, see §6 below)
 
 Day-to-day operational tasks — currently database management (guest comments) and deployment verification. Add more sections here as other operational needs come up, rather than starting a new doc per task.
 
@@ -16,7 +16,7 @@ Day-to-day operational tasks — currently database management (guest comments) 
 - Stored in the `db_data` Docker named volume (`docker-compose.yml`), not bind-mounted to the repo — it survives `stack.sh restart`/container recreation, but **not** `docker compose down -v` or `docker volume rm` (§5.3).
 - Credentials live in `.env` (`DB_NAME`/`DB_USER`/`DB_PASSWORD`/`DB_ROOT_PASSWORD`) — not committed to the repo.
 
-**Security note:** `.env`'s current `DB_PASSWORD`/`DB_ROOT_PASSWORD`/`DJANGO_SECRET_KEY` are still the scaffold's placeholder values (`wedding`/`root`/`dev-secret-key-change-me`), even though `APP_ENV` is `prod` and the site is publicly tunneled. Worth rotating to real random values before this matters (the database port itself isn't published to the host in `docker-compose.yml`, so it's not directly internet-reachable today — but the weak values are still worth fixing since they're the kind of thing that becomes a problem the moment anything changes).
+**Security note:** `.env`'s current `DB_PASSWORD`/`DB_ROOT_PASSWORD`/`DJANGO_SECRET_KEY` are still the scaffold's placeholder values (`wedding`/`root`/`dev-secret-key-change-me`), even though the site is publicly tunneled. Worth rotating to real random values before this matters (the database port itself isn't published to the host in `docker-compose.yml`, so it's not directly internet-reachable today — but the weak values are still worth fixing since they're the kind of thing that becomes a problem the moment anything changes).
 
 ## 2. Everyday task: moderating a guest comment
 
@@ -102,21 +102,22 @@ docker volume rm bismillah_db_data   # confirm the exact name first: docker volu
 ```
 Deletes the `db_data` volume entirely — MariaDB reinitializes from empty on the next `up`, migrations reapply automatically (`backend/entrypoint.sh`), but **every comment and every admin user is gone, permanently, no undo without a backup** (§3). This is the "the database itself is corrupted/misconfigured and needs to start over" nuclear option, not a normal moderation task — §5.1 or Django Admin (§2) cover everything short of this.
 
-## 6. Verifying the stack is actually in `prod` mode after a restart
+## 6. Confirming a container is running the process you expect
 
-**A `curl` returning `200` is not proof the site is running `next start` (prod) and not `next dev`** — `next dev`'s Turbopack dev server also serves `200`s. Real incident: after switching `.env` back to `APP_ENV=prod` and running `./stack.sh restart`, the restart was interrupted partway through (the command ran across a session boundary and never finished). A follow-up health check that only asserted `curl localhost:3000/` returned `200` looked clean and passed — but the container underneath was actually still running the *previous* `npm run dev` process, left over from whatever mode it had been in before that interrupted restart. Dev mode stayed live on the public tunnel for a while as a result, and — per TECH_STACK.md §5, which already documented dev mode as unsafe to expose publicly — caused real, intermittent breakage for actual visitors (CONTENT_DESIGN.md §29, a "stuck loading" report that turned out to have nothing to do with application code).
+**Historical context (why this section exists at all).** Until Phase 11 (2026-08-15), there was a single `web` container whose mode (`next dev` vs `next start`) was picked at build time by an `.env` flag (`APP_ENV`) — a **mutable** value, re-read on every restart. A real incident happened because of that: after switching `.env` back to `APP_ENV=prod` and running `./stack.sh restart`, the restart was interrupted partway through (the command ran across a session boundary and never finished). A follow-up health check that only asserted `curl localhost:3000/` returned `200` looked clean and passed — but the container underneath was actually still running the *previous* `npm run dev` process. Dev mode stayed live on the public tunnel for a while as a result, causing real, intermittent breakage for actual visitors (CONTENT_DESIGN.md §29, a "stuck loading" report that turned out to have nothing to do with application code). `go-prod.sh`/`run-dev.sh` existed specifically to catch this — they wrapped `stack.sh restart` with a `ps aux` assertion and exited non-zero if the wrong process was found.
 
-**After any `./stack.sh restart` (or any `docker compose up`/`--force-recreate` on `web`), verify the actual running process, not just an HTTP status:**
+**That ambiguity is now structurally impossible, not just guarded against.** `docker-compose.yml` gives `web` a fixed `target: prod` and `web-dev` a fixed `target: dev` — both **literal strings**, never interpolated from any env var. There is no code path, interrupted restart or not, by which the container named `web` ends up running `next dev`, or `web-dev` ends up running `next start` — the mode is baked into which service definition you're looking at, not a runtime toggle. `go-prod.sh` and `run-dev.sh` are retired; there's nothing left for them to verify that isn't already guaranteed by the compose file itself.
+
+**Still worth a plain sanity check after any restart** — not to catch mode ambiguity (gone), just ordinary "did the container actually come up and start the process I expect" hygiene:
 ```sh
-docker exec bismillah-web-1 sh -c 'ps aux | head -5'
+docker compose ps                                    # all 4 services Up?
+docker exec bismillah-web-1 ps aux | head -5          # expect next-server / npm run start
+docker exec bismillah-web-dev-1 ps aux | head -5      # expect next dev
+docker exec bismillah-backend-1 ps aux | head -5      # expect gunicorn
 ```
-Expect to see `next-server` and `npm run start` (prod) — if you instead see `next dev` and/or a `next-server (v...) ... dev` line, the container is running the dev target regardless of what `.env`/`APP_ENV` says. Re-run `./stack.sh restart` and check again. Cheaper one-liner for the same check:
-```sh
-docker exec bismillah-web-1 ps aux | grep -q 'npm run start' && echo "prod: OK" || echo "NOT prod — check ps aux"
-```
 
-**`./go-prod.sh` and `./run-dev.sh`** wrap `stack.sh restart` with exactly this check baked in, so it can't be silently skipped — they set `APP_ENV` in `.env`, restart, wait for `web` to respond, then assert the actual process (`npm run start` / `next dev` respectively) and **exit non-zero if it doesn't match**, instead of reporting success on an HTTP 200 alone. Prefer these over calling `stack.sh restart` directly:
+**`./update-prod.sh`** rebuilds + recreates just `web` from current source (what's been tested live on `web-dev`) and includes this same kind of check — waits for `localhost:3000/` to respond, then asserts `npm run start` is the actual running process, exiting non-zero if not:
 ```sh
-./go-prod.sh   # switch to / confirm prod mode (verified)
-./run-dev.sh   # switch to dev mode for local iteration (verified) — not for the public tunnel
+./update-prod.sh   # "promote" web-dev's tested changes to prod (web)
+./stack.sh restart web-dev   # restart just the dev container, e.g. after a dependency change
 ```

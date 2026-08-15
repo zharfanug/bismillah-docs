@@ -6,7 +6,7 @@
 
 Execution plan for local development. Steps are meant to be done **one at a time, in order** — each step has a concrete deliverable and a test to run before moving to the next. Don't start a step until the previous one's test passes. Scope is local-only; Cloudflare Tunnel / production exposure is handled separately by the user (see PRD.md §3).
 
-**Running the stack:** use `./stack.sh [up|restart|down|logs [service]]` rather than raw `docker compose` commands (steps below were written before the script existed, so they show `docker compose ...` directly — same effect, `stack.sh` just picks the right compose files and derives `DJANGO_DEBUG` for you based on `APP_ENV` in `.env`). Set `APP_ENV=dev` for local iteration (hot reload) or `APP_ENV=prod` before pointing anything (like a Cloudflare Tunnel) at it — see TECH_STACK.md §5 for why dev mode isn't safe/correct to expose publicly.
+**Running the stack:** use `./stack.sh [up|restart [service]|down|logs [service]]` rather than raw `docker compose` commands (steps below were written before the script existed, so they show `docker compose ...` directly — same effect). **Revised, Phase 11 (2026-08-15):** there's no more `APP_ENV` mode toggle — `web` (prod, :3000) and `web-dev` (dev/hot-reload, :3001) are two permanent containers that run simultaneously, always. Iterate against `localhost:3001`; when ready, `./update-prod.sh` rebuilds just `web` from the same source. See TECH_STACK.md §5 for the full architecture and why `web-dev`/:3001 is still never safe/correct to expose publicly (same as the old dev mode wasn't).
 
 Steps are numbered `<phase>.<step>`. Check off each step as it's completed: `[ ]` → `[x]`.
 
