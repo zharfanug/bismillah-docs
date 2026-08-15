@@ -2,7 +2,7 @@
 ## Wedding Announcement Website
 
 **Status:** Built (Phase 7 complete) — this doc now describes the shipped state, not a plan
-**Last updated:** 2026-08-15 (Phase 10: new Main Announcement page inserted right after Cover — see Page 2; Cover's own revealed in-flow "second screen" removed entirely, so tapping "Buka" now lands directly on Main Announcement instead of a near-duplicate greeting first — see Page 1; A Note From Us moved to Page 7 (after Gallery), everything from Countdown on renumbered; language toggle made guest-facing — see the floating-controls entries at the bottom; Countdown's date line replaced with a QS. Ar-Rum: 21 quote (meaning only) — see Page 3; Main Announcement's layout later switched to three independently-positioned blocks — see Page 2. Phase 9: Cover's wedding date removed from the pre-tap overlay; wheel scrolling converted to a 35%-threshold page-turn gesture — see CONTENT_DESIGN.md §24; Guest Wishes card capped to one viewport with an internal comment scroller. Each change is flagged in its page's entry below)
+**Last updated:** 2026-08-15 (Phase 10/11: page order changed again — Countdown and Couple Profile swapped, Couple Profile is now Page 3 and Countdown Page 4 (announcement, then who the couple is, then the countdown); new Main Announcement page inserted right after Cover — see Page 2; Cover's own revealed in-flow "second screen" removed entirely, so tapping "Buka" now lands directly on Main Announcement instead of a near-duplicate greeting first — see Page 1; A Note From Us moved to Page 7 (after Gallery); language toggle made guest-facing — see the floating-controls entries at the bottom; Countdown's date line replaced with a QS. Ar-Rum: 21 quote (meaning only) — see Page 4; Main Announcement's layout later switched to three independently-positioned blocks — see Page 2. Phase 9: Cover's wedding date removed from the pre-tap overlay; wheel scrolling converted to a 35%-threshold page-turn gesture — see CONTENT_DESIGN.md §24; Guest Wishes card capped to one viewport with an internal comment scroller. Each change is flagged in its page's entry below)
 
 The site is still a **single long-scroll page**, not separate routes (per CONTENT_DESIGN.md §1). "Pages" below just means each full-viewport section, in scroll order — laid out here as individual text wireframes so you can quickly preview what's in each one before any real UI is built. Background music (§ at the bottom) is a floating control present on every page, not a page of its own.
 
@@ -81,7 +81,27 @@ Content shown is placeholder/draft text from CONTENT_DESIGN.md — swap freely.
 - **Layout revised (follow-up, 2026-08-15):** the Bismillah/intro block, the bride/&/groom block, and the date-intro/date block are each independently positioned — top and bottom blocks sit exactly 13.20% in from the frame's top/bottom edge (matching where the frame art's corner flowers end), the middle block is vertically centered in the space between them. Full reasoning: CONTENT_DESIGN.md §33.
 - **Assets:** `cover/background_cover.png` (reused, no dedicated background of its own) + `components/letter_frame.png` (the card/container) + `name/ara.png` / `name/zharfan.png` (nickname signatures, reused from Couple Profile).
 
-### Page 3 — Countdown  `id: countdown` · default: **on**
+### Page 3 — Couple Profile  `id: coupleProfile` · default: **on**
+
+Revised (Phase 7) — **two separate full-screen sections** instead of one combined overlapping layout (was too cramped on phone widths — CONTENT_DESIGN.md §15); order reversed to bride-first in Phase 8 (§22):
+
+```
+┌──────────────────────────────┐   ┌──────────────────────────────┐
+│                               │   │                               │
+│         [ bride photo ]        │   │         [ groom photo ]        │
+│                               │   │                               │
+│           "Ara" (art)          │   │         "Zharfan" (art)        │
+│      Haura Dhiya Amaninida      │   │      Muhammad Zharfan Nugroho   │
+│      Putri dari Bpk. C & Ibu D  │   │      Putra dari Bpk. A & Ibu B  │
+│                               │   │                               │
+└──────────────────────────────┘   └──────────────────────────────┘
+       Section 3a — bride                  Section 3b — groom
+```
+- Each side gets its own full viewport: portrait, hand-lettered nickname signature (`name/zharfan.png` / `name/ara.png`, CONTENT_DESIGN.md §14), full legal name, and the placeholder parents line — all in the usual translucent white panel.
+- Same `bride & groom/Background_*` background reused for both (CONTENT_DESIGN.md §12); the paired `frame_bride&groom.png` isn't reused here (designed for two people side by side, would distort scaled to one — CONTENT_DESIGN.md §15).
+- **Assets:** `bride & groom/bride_bride&groom.png` / `groom_bride&groom.png` (full illustrated portraits) + `Background_bride&groom.png`, plus `name/zharfan.png` and `name/ara.png`. Fade/slide-in per section as it scrolls into view.
+
+### Page 4 — Countdown  `id: countdown` · default: **on**
 
 ```
 ┌──────────────────────────────┐
@@ -99,27 +119,8 @@ Content shown is placeholder/draft text from CONTENT_DESIGN.md — swap freely.
 ```
 - Live countdown, ticking every second.
 - **Revised (Phase 10, 2026-08-15):** the static date line was removed (the date already shows on Main Announcement, Page 2) — replaced with a short Qur'an quote, QS. Ar-Rum: 21, about spouses finding tranquility, affection, and mercy together. Meaning only (standard published translation, no Arabic script) plus the citation beneath it, in the translucent card below the timer. Full spec: CONTENT_DESIGN.md §36.
+- **Moved (2026-08-15):** previously Page 3, right after Main Announcement — now Page 4, after Couple Profile (the announcement, then who the couple is, then the countdown to the day). Position only, no content/asset change.
 - **Assets:** `location option 2/` — `background_location2.png` + `silhouette_location2.png` (treeline overlay). Assigned here specifically (this folder was originally an unused spare — see CONTENT_DESIGN.md §12). Countdown numbers sit in a translucent white card for contrast against the artwork. **Revised (Phase 8):** the framing arch is now the same shared `components/arch_flower1_left.png`/`arch_flower1_right.png` halves Cover uses (retiring this folder's own `arch_location2.png`), same off-screen bleed + slow sway treatment — CONTENT_DESIGN.md §30.
-
-### Page 4 — Couple Profile  `id: coupleProfile` · default: **on**
-
-Revised (Phase 7) — **two separate full-screen sections** instead of one combined overlapping layout (was too cramped on phone widths — CONTENT_DESIGN.md §15); order reversed to bride-first in Phase 8 (§22):
-
-```
-┌──────────────────────────────┐   ┌──────────────────────────────┐
-│                               │   │                               │
-│         [ bride photo ]        │   │         [ groom photo ]        │
-│                               │   │                               │
-│           "Ara" (art)          │   │         "Zharfan" (art)        │
-│      Haura Dhiya Amaninida      │   │      Muhammad Zharfan Nugroho   │
-│      Putri dari Bpk. C & Ibu D  │   │      Putra dari Bpk. A & Ibu B  │
-│                               │   │                               │
-└──────────────────────────────┘   └──────────────────────────────┘
-       Section 4a — bride                  Section 4b — groom
-```
-- Each side gets its own full viewport: portrait, hand-lettered nickname signature (`name/zharfan.png` / `name/ara.png`, CONTENT_DESIGN.md §14), full legal name, and the placeholder parents line — all in the usual translucent white panel.
-- Same `bride & groom/Background_*` background reused for both (CONTENT_DESIGN.md §12); the paired `frame_bride&groom.png` isn't reused here (designed for two people side by side, would distort scaled to one — CONTENT_DESIGN.md §15).
-- **Assets:** `bride & groom/bride_bride&groom.png` / `groom_bride&groom.png` (full illustrated portraits) + `Background_bride&groom.png`, plus `name/zharfan.png` and `name/ara.png`. Fade/slide-in per section as it scrolls into view.
 
 ### Page 5 — Love Story  `id: loveStory` · default: **off**
 
@@ -292,3 +293,4 @@ Revised (Phase 7) — **two separate full-screen sections** instead of one combi
 - Phase 7 (2026-08-10): Couple Profile is now two pages (3a groom, 3b bride) instead of one combined layout; couple's names render as hand-lettered signature art (`name/`) instead of script-font text on Cover, Couple Profile, and Share; Share's hero illustration switched to the `ig_v2/` story card plus a new Instagram live link; site-wide fixes — forced light-only theme (contrast bug), scroll lock + hidden scrollbar pre-open, Cover's open button gated on asset loading, and a centered max-width column on wide viewports. See CONTENT_DESIGN.md §13–§20.
 - Phase 9 (2026-08-15): Cover's wedding date removed from both the pre-tap overlay and the revealed hero (the date lives only on Countdown now); wheel scrolling converted to a page-turn gesture — one section per 35%-of-viewport wheel input, keyboard/touch still use the CSS snap (CONTENT_DESIGN.md §24); Guest Wishes card capped to one viewport with the comment list as an internal scroller. See CONTENT_DESIGN.md §24 and the Page 1/Page 7 entries above.
 - Phase 10 (2026-08-15): new Main Announcement page inserted right after Cover (now Page 2 — Bismillah + formal announcement text in a `letter_frame.png` card); Cover's own revealed in-flow hero section removed, so "Tap to Open" now lands directly on Main Announcement instead of a second, near-duplicate greeting screen first; A Note From Us moved from Page 4 to Page 7 (after Gallery) to make room; every page from Countdown onward renumbered accordingly. Language toggle (id/en) made guest-facing — floating button, flag-emoji notation, usable from the Cover overlay before opening. See CONTENT_DESIGN.md §33–§35 and the Page 1/Page 2/Page 7/floating-controls entries above.
+- Phase 10/11 (2026-08-15): Countdown and Couple Profile swapped — Countdown is now Page 4, Couple Profile Page 3 (announcement → couple intro → countdown). Page numbers in the entry headers above reflect this; Page 7's "Moved (Phase 10)" note and Page 4's "Moved (2026-08-15)" note record the history.
