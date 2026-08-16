@@ -2,7 +2,7 @@
 ## Wedding Announcement Website
 
 **Status:** Built (Phase 7 complete) — this doc now describes the shipped state, not a plan
-**Last updated:** 2026-08-15 (Phase 10/11: page order changed again — Countdown and Couple Profile swapped, Couple Profile is now Page 3 and Countdown Page 4 (announcement, then who the couple is, then the countdown); new Main Announcement page inserted right after Cover — see Page 2; Cover's own revealed in-flow "second screen" removed entirely, so tapping "Buka" now lands directly on Main Announcement instead of a near-duplicate greeting first — see Page 1; A Note From Us moved to Page 7 (after Gallery); language toggle made guest-facing — see the floating-controls entries at the bottom; Countdown's date line replaced with a QS. Ar-Rum: 21 quote (meaning only) — see Page 4; Main Announcement's layout later switched to three independently-positioned blocks — see Page 2. Phase 9: Cover's wedding date removed from the pre-tap overlay; wheel scrolling converted to a 35%-threshold page-turn gesture — see CONTENT_DESIGN.md §24; Guest Wishes card capped to one viewport with an internal comment scroller. Each change is flagged in its page's entry below)
+**Last updated:** 2026-08-16 (New Page 2, Prolog (`id: prolog`) — two birds flying together + the QS. Ar-Rum: 21 quote, moved off Countdown; every subsequent page renumbered up by one — see CONTENT_DESIGN.md §41). Also 2026-08-16, earlier the same day: every page's own background image removed — replaced site-wide by one shared `BackgroundLayer`, `position: fixed` so it no longer scrolls with the page at all, same gradient + grain-crop look as Cover's overlay; each page's Assets bullet above updated to flag its background as superseded — see CONTENT_DESIGN.md §39. Also 2026-08-16, earlier still: Page 1 Cover's background image fetch replaced with a CSS gradient + real grain-crop overlay, landscape scene and birds/banner moved to a new `wedding/` folder — see CONTENT_DESIGN.md §38 (now itself superseded by §39, above). Previously 2026-08-15 (Phase 10/11: Couple Profile (Page 3) switched off by default — its bride/groom portraits moved onto Main Announcement's (Page 2) bottom corners instead, groom sized taller than bride, both bleeding past the section edge on purpose; the date's own bottom-anchored zone on Page 2 retired, `dateIntro`/date now sit two lines below the groom's name in the normal flow (CONTENT_DESIGN.md §37); page order changed again — Countdown and Couple Profile swapped, Couple Profile is now Page 3 and Countdown Page 4 (announcement, then who the couple is, then the countdown); new Main Announcement page inserted right after Cover — see Page 2; Cover's own revealed in-flow "second screen" removed entirely, so tapping "Buka" now lands directly on Main Announcement instead of a near-duplicate greeting first — see Page 1; A Note From Us moved to Page 7 (after Gallery); language toggle made guest-facing — see the floating-controls entries at the bottom; Countdown's date line replaced with a QS. Ar-Rum: 21 quote (meaning only) — see Page 4; Main Announcement's layout later switched to three independently-positioned blocks — see Page 2. Phase 9: Cover's wedding date removed from the pre-tap overlay; wheel scrolling converted to a 35%-threshold page-turn gesture — see CONTENT_DESIGN.md §24; Guest Wishes card capped to one viewport with an internal comment scroller. Each change is flagged in its page's entry below)
 
 The site is still a **single long-scroll page**, not separate routes (per CONTENT_DESIGN.md §1). "Pages" below just means each full-viewport section, in scroll order — laid out here as individual text wireframes so you can quickly preview what's in each one before any real UI is built. Background music (§ at the bottom) is a floating control present on every page, not a page of its own.
 
@@ -35,10 +35,29 @@ Content shown is placeholder/draft text from CONTENT_DESIGN.md — swap freely.
 - "Tap to open" interaction — only appears once the overlay's artwork has actually finished loading (a progress bar shows load progress until then, and a 30s auto-refresh recovers if it never finishes — CONTENT_DESIGN.md §19, §29); also the user gesture that unlocks the background music autoplay (browsers block autoplay without one).
 - Page scroll is locked and the scrollbar hidden while this overlay is showing (CONTENT_DESIGN.md §18) — unlocked the moment "Tap to Open" is pressed.
 - **Removed (Phase 10, 2026-08-15): the revealed, in-flow "second Cover screen."** Cover used to render its own in-flow `<section>` after the overlay closed — same greeting repeated over `opening/background_opening.png` with the animated `arch_flower1_left/right.png` halves — so tapping "Buka" landed on a near-duplicate of what the visitor had just seen, *before* reaching Main Announcement. That section is now gone entirely; Cover only ever renders the pre-tap overlay. Tapping "Buka" now reveals Main Announcement (Page 2) directly — verified `scrollY === 0` right after opening lands on Main Announcement's Bismillah, not a second greeting. `opening/background_opening.png` is unaffected (still Wishes' reused background) and the arch halves are unaffected (still Countdown's framing arch, CONTENT_DESIGN.md §30) — only Cover's own use of them was removed.
-- **Assets (pre-tap overlay only, now):** `cover/background_cover.png` (gradient), `cover/landscape_cover.png` (watercolor scene), `cover/birds&banner_cover.png` (names/date banner, idle bird/banner motion), `name/ara-zharfan.png` (couple's names). The `[ background photo ]` placeholder in the wireframe above is these layered together.
+- **Assets (pre-tap overlay only, now):** background is a CSS gradient (`#B9D3DE` → `#F8F1E2`, colors sampled from the old `cover/background_cover.png`) plus `wedding/ltblue_white_transition.png`, a small real grain crop over the color transition band — replaces the old `background_cover.png` image fetch entirely (CONTENT_DESIGN.md §38). `wedding/house.png` (watercolor scene, formerly `cover/landscape_cover.png`), `wedding/birds_lace_banner.png` (names/date banner, idle bird/banner motion, formerly `cover/birds&banner_cover.png`), `name/ara-zharfan.png` (couple's names). The `[ background photo ]` placeholder in the wireframe above is these layered together.
 - **Typography:** the greeting text block sits in a translucent white panel for contrast against the artwork.
 
-### Page 2 — Main Announcement  `id: mainAnnouncement` · default: **on** (new, Phase 10, 2026-08-15)
+### Page 2 — Prolog  `id: prolog` · default: **on** (new, 2026-08-16)
+
+```
+┌──────────────────────────────┐
+│                               │
+│         (bird)  (bird)        │
+│                               │
+│   "And of His signs is that   │
+│    He created for you..."     │
+│                               │
+│        QS. Ar-Rum: 21         │
+│                               │
+└──────────────────────────────┘
+```
+- Two birds, pure CSS (no image files) — a sprite-sheet wing-flap animation (`wedding/bird_flap_sprite.svg`, self-hosted from a [CodePen technique](https://codepen.io/imdoug/pen/vYZNoYr), recolored white) combined with a `left`/`transform` keyframe animation that flies both birds across the section together, same direction, tightly spaced (short delay + small vertical gap only). Respects `prefers-reduced-motion` via the CSS Module directly. Full implementation notes: CONTENT_DESIGN.md §41.
+- The QS. Ar-Rum: 21 quote (meaning only, no Arabic script) — moved here from Countdown (Page 5 below), which used to show it under the timer (§36, now superseded by §41).
+- **Assets:** no background image of its own — the shared, fixed `BackgroundLayer` (CONTENT_DESIGN.md §39) shows through behind it. Quote sits in the usual `bg-white/75 backdrop-blur-sm` translucent panel for contrast; birds are outside that panel, directly on the backdrop.
+- Full spec: CONTENT_DESIGN.md §41.
+
+### Page 3 — Main Announcement  `id: mainAnnouncement` · default: **on** (new, Phase 10, 2026-08-15)
 
 ```
 ┌──────────────────────────────┐
@@ -69,19 +88,23 @@ Content shown is placeholder/draft text from CONTENT_DESIGN.md — swap freely.
 │  │  pada                   │    │
 │  │  28 Agustus 2026         │    │
 │  ╰──────────────────────╯    │
+│ [bride]              [groom] │
 └──────────────────────────────┘
 ```
 
 - New section, inserted right after Cover — a formal Bismillah + wedding announcement, distinct from Cover's brief greeting and Couple Profile's per-person bios. Full spec: CONTENT_DESIGN.md §33.
-- **Container is the content's own background**, not a decorative overlay — `components/letter_frame.png` is an opaque paper-card graphic (checked with ImageMagick: fully opaque cream center, transparent only at the rounded corners), unlike every other page's `bg-white/75` panel over a separate full-bleed background image.
+- **Container is the content's own background**, not a decorative overlay — `content.letterFrameImage` (top-level, not nested under `mainAnnouncement` — moved there so Cover's `PRELOAD_ASSETS` can reference it directly; `wedding/letter_frame.png` as of 2026-08-16, moved from `components/`) is an opaque paper-card graphic (checked with ImageMagick: fully opaque cream center, transparent only at the rounded corners), unlike every other page's `bg-white/75` panel over a separate full-bleed background image.
 - Bismillah shown in Arabic script (right-to-left), same text regardless of the site's language toggle — not translated. Uses a dedicated Arabic font (Noto Naskh Arabic) since none of the site's other fonts cover Arabic glyphs.
 - Bride and groom each get their nickname signature art (reused from Couple Profile/Cover), their full legal name in a handwriting-style script font colored light blue (`#a1c1da`), and their parents line in small plain text (no handwriting, smaller than the name) beneath.
 - A large handwriting-style "&" divides the two — rendered as styled text, not an image (no standalone ampersand asset exists in the source pack; checked before deciding this).
-- Closing line ("yang akan dilaksanakan pada" / "which will take place on") followed by the event date in the same handwriting script, colored green (`#adcd9f`).
-- **Layout revised (follow-up, 2026-08-15):** the Bismillah/intro block, the bride/&/groom block, and the date-intro/date block are each independently positioned — top and bottom blocks sit exactly 13.20% in from the frame's top/bottom edge (matching where the frame art's corner flowers end), the middle block is vertically centered in the space between them. Full reasoning: CONTENT_DESIGN.md §33.
-- **Assets:** `cover/background_cover.png` (reused, no dedicated background of its own) + `components/letter_frame.png` (the card/container) + `name/ara.png` / `name/zharfan.png` (nickname signatures, reused from Couple Profile).
+- `dateIntro` ("yang akan dilaksanakan pada" / "which will take place on") followed by the event date in the same handwriting script, colored green (`#adcd9f`). **Moved (2026-08-15):** used to be its own bottom-anchored zone (`bottom: 13.20%`, briefly `20%`); now just the last two lines of the name block itself, two lines below the groom's name — see CONTENT_DESIGN.md §37.
+- **Bride and groom portraits now stand in this page's bottom-left/bottom-right corners** (added 2026-08-15, took over the role Couple Profile — now off, see Page 4 — used to serve). Layered *above* the letter_frame card, allowed to cover its corner artwork (and, to a lesser extent, the card's own text at their outer edges, judged acceptable by eye against real screenshots — see CONTENT_DESIGN.md §37 for why a strict zero-overlap rule was abandoned in favor of visual review). Both bleed intentionally past the section's own left/right edge (`-10%` offset, cropped by `overflow-hidden`) so they can render bigger without crowding the card's centered text column; groom is deliberately sized taller than bride. Full reasoning and the sizing iteration: CONTENT_DESIGN.md §37.
+- **Layout:** the Bismillah/intro block sits in a top zone (`top: 13.20%`, matching where the frame art's corner flowers end); the bride/&/groom/dateIntro/date block is vertically centered (`top-1/2 -translate-y-1/2`) in the remaining space. There is no separate bottom zone anymore (retired along with the date's old position, §37). Full reasoning: CONTENT_DESIGN.md §33/§37.
+- **Assets:** ~~`cover/background_cover.png` (reused, no dedicated background of its own)~~ **superseded (2026-08-16, CONTENT_DESIGN.md §39): background image removed, shared fixed `BackgroundLayer` shows through instead** + `letterFrameImage` (the card/container, `wedding/letter_frame.png` as of 2026-08-16) + `name/ara.png` / `name/zharfan.png` (nickname signatures) + `bride.photo` / `groom.photo` (the corner portraits, same full illustrated portraits Couple Profile used to show — `bride.png` re-edited 2026-08-15 to trim excess transparent canvas margin).
 
-### Page 3 — Couple Profile  `id: coupleProfile` · default: **on**
+### Page 4 — Couple Profile  `id: coupleProfile` · default: **off** (was on — switched off 2026-08-15, §37)
+
+**Off by default since 2026-08-15** — the bride/groom portraits it used to show now live on Main Announcement's bottom corners instead (Page 3), so there's no separate profile page in the default flow. The section still exists and works if re-enabled (`coupleProfile: true` in `wedding.ts`); everything below describes it as it renders when on.
 
 Revised (Phase 7) — **two separate full-screen sections** instead of one combined overlapping layout (was too cramped on phone widths — CONTENT_DESIGN.md §15); order reversed to bride-first in Phase 8 (§22):
 
@@ -99,9 +122,9 @@ Revised (Phase 7) — **two separate full-screen sections** instead of one combi
 ```
 - Each side gets its own full viewport: portrait, hand-lettered nickname signature (`name/zharfan.png` / `name/ara.png`, CONTENT_DESIGN.md §14), full legal name, and the placeholder parents line — all in the usual translucent white panel.
 - Same `bride & groom/Background_*` background reused for both (CONTENT_DESIGN.md §12); the paired `frame_bride&groom.png` isn't reused here (designed for two people side by side, would distort scaled to one — CONTENT_DESIGN.md §15).
-- **Assets:** `bride & groom/bride_bride&groom.png` / `groom_bride&groom.png` (full illustrated portraits) + `Background_bride&groom.png`, plus `name/zharfan.png` and `name/ara.png`. Fade/slide-in per section as it scrolls into view.
+- **Assets:** `bride & groom/bride_bride&groom.png` / `groom_bride&groom.png` (full illustrated portraits) + ~~`Background_bride&groom.png`~~ **superseded (2026-08-16, CONTENT_DESIGN.md §39): background image removed, shared fixed `BackgroundLayer` shows through instead**, plus `name/zharfan.png` and `name/ara.png`. Fade/slide-in per section as it scrolls into view.
 
-### Page 4 — Countdown  `id: countdown` · default: **on**
+### Page 5 — Countdown  `id: countdown` · default: **on**
 
 ```
 ┌──────────────────────────────┐
@@ -111,18 +134,14 @@ Revised (Phase 7) — **two separate full-screen sections** instead of one combi
 │   [ 12 ]  [ 08 ]  [ 45 ]  [ 30 ] │
 │   Days    Hrs    Min    Sec     │
 │                               │
-│  "...He placed between you     │
-│   affection and mercy..."      │
-│      QS. Ar-Rum: 21            │
-│                               │
 └──────────────────────────────┘
 ```
-- Live countdown, ticking every second.
-- **Revised (Phase 10, 2026-08-15):** the static date line was removed (the date already shows on Main Announcement, Page 2) — replaced with a short Qur'an quote, QS. Ar-Rum: 21, about spouses finding tranquility, affection, and mercy together. Meaning only (standard published translation, no Arabic script) plus the citation beneath it, in the translucent card below the timer. Full spec: CONTENT_DESIGN.md §36.
-- **Moved (2026-08-15):** previously Page 3, right after Main Announcement — now Page 4, after Couple Profile (the announcement, then who the couple is, then the countdown to the day). Position only, no content/asset change.
-- **Assets:** `location option 2/` — `background_location2.png` + `silhouette_location2.png` (treeline overlay). Assigned here specifically (this folder was originally an unused spare — see CONTENT_DESIGN.md §12). Countdown numbers sit in a translucent white card for contrast against the artwork. **Revised (Phase 8):** the framing arch is now the same shared `components/arch_flower1_left.png`/`arch_flower1_right.png` halves Cover uses (retiring this folder's own `arch_location2.png`), same off-screen bleed + slow sway treatment — CONTENT_DESIGN.md §30.
+- Live countdown, ticking every second. Timer-only — no quote or date line beneath it.
+- **Revised (Phase 10, 2026-08-15):** the static date line was removed (the date already shows on Main Announcement) — replaced with a short Qur'an quote, QS. Ar-Rum: 21, about spouses finding tranquility, affection, and mercy together, in the translucent card below the timer. Full spec: CONTENT_DESIGN.md §36. **Superseded (2026-08-16, §41): the quote itself moved to the new Prolog page (Page 2)** — Countdown is timer-only again, per the wireframe above.
+- **Moved (2026-08-15):** previously Page 3, right after Main Announcement — then Page 4, after Couple Profile (the announcement, then who the couple is, then the countdown to the day). **Now Page 5**, after Prolog was inserted (2026-08-16, §41) — position only, no further content/asset change.
+- **Assets:** `location option 2/` — ~~`background_location2.png` + `silhouette_location2.png` (treeline overlay)~~ **superseded (2026-08-16, CONTENT_DESIGN.md §39): both background layers removed, shared fixed `BackgroundLayer` shows through instead**. Countdown numbers sit in a translucent white card for contrast against the artwork. **Revised (Phase 8):** the framing arch is now the same shared `components/arch_flower1_left.png`/`arch_flower1_right.png` halves Cover uses (retiring this folder's own `arch_location2.png`), same off-screen bleed + slow sway treatment — CONTENT_DESIGN.md §30.
 
-### Page 5 — Love Story  `id: loveStory` · default: **off**
+### Page 6 — Love Story  `id: loveStory` · default: **off**
 
 ```
 ┌──────────────────────────────┐
@@ -140,9 +159,9 @@ Revised (Phase 7) — **two separate full-screen sections** instead of one combi
 ```
 - Vertical timeline, a few milestones with a short line of text each.
 - Shipping on with placeholder milestones for now — toggle off via `loveStory` if you'd rather leave it out (CONTENT_DESIGN.md §1).
-- **Assets:** background reused from `outro/Background_outro.png` (no dedicated folder of its own — see CONTENT_DESIGN.md §12) + small floral accents from `components/` (`lily.png`, `orchid.png`, `amaranthus.png`) beside milestones. Timeline sits in a translucent white panel for contrast.
+- **Assets:** ~~background reused from `outro/Background_outro.png` (no dedicated folder of its own — see CONTENT_DESIGN.md §12)~~ **superseded (2026-08-16, CONTENT_DESIGN.md §39): background image removed, shared fixed `BackgroundLayer` shows through instead** + small floral accents from `components/` (`lily.png`, `orchid.png`, `amaranthus.png`) beside milestones. Timeline sits in a translucent white panel for contrast.
 
-### Page 6 — Gallery  `id: gallery` · default: **off**
+### Page 7 — Gallery  `id: gallery` · default: **off**
 
 ```
 ┌──────────────────────────────┐
@@ -156,9 +175,9 @@ Revised (Phase 7) — **two separate full-screen sections** instead of one combi
 ```
 - Responsive photo grid; click/tap opens a lightbox (arrow + swipe + keyboard navigation).
 - Lazy-loaded images.
-- **Assets:** background reused from `cover/background_cover.png` (no dedicated folder of its own) + `components/mainbouquet.png` as a corner accent around the grid (decoration only — doesn't sit on top of the photos themselves, doesn't affect lightbox behavior). Grid sits in a translucent white panel for contrast.
+- **Assets:** ~~background reused from `cover/background_cover.png` (no dedicated folder of its own)~~ **superseded (2026-08-16, CONTENT_DESIGN.md §39): background image removed, shared fixed `BackgroundLayer` shows through instead** + `components/mainbouquet.png` as a corner accent around the grid (decoration only — doesn't sit on top of the photos themselves, doesn't affect lightbox behavior). Grid sits in a translucent white panel for contrast.
 
-### Page 7 — "A Note From Us"  `id: noteFromUs` · default: **on**
+### Page 8 — "A Note From Us"  `id: noteFromUs` · default: **on**
 
 ```
 ┌──────────────────────────────┐
@@ -184,9 +203,9 @@ Revised (Phase 7) — **two separate full-screen sections** instead of one combi
 - Draft 1 shown; drafts 2/3 or your own edit are drop-in swaps in the content file.
 - Small signature line under the note is a nice touch, optional.
 - **Moved (Phase 10, 2026-08-15):** previously Page 4, right after Couple Profile — now Page 7, after Gallery, to make room for the new Main Announcement section right after Cover. No content or asset change, position only.
-- **Assets:** `location option 1/` — `Background_location1.png` + `frame_location1.png` (floral corner frame) reused purely for its look (repurposing explained in CONTENT_DESIGN.md §12; nothing address/venue-related is added despite the folder's name). Fade-in animation. Text sits in a translucent white panel for contrast.
+- **Assets:** `location option 1/` — ~~`Background_location1.png` +~~ `frame_location1.png` (floral corner frame — the background layer removed 2026-08-16, superseded by the shared fixed `BackgroundLayer`, CONTENT_DESIGN.md §39) reused purely for its look (repurposing explained in CONTENT_DESIGN.md §12; nothing address/venue-related is added despite the folder's name). Fade-in animation. Text sits in a translucent white panel for contrast.
 
-### Page 8 — Guest Wishes / Comments  `id: wishes` · default: **on**
+### Page 9 — Guest Wishes / Comments  `id: wishes` · default: **on**
 
 ```
 ┌──────────────────────────────┐
@@ -211,9 +230,9 @@ Revised (Phase 7) — **two separate full-screen sections** instead of one combi
 - If the message hits the denylist, an inline error shows instead of the wish appearing (CONTENT_DESIGN.md §6).
 - List is public, newest first, reads from the database (persists across reloads).
 - **The card is capped to one viewport** (`max-h-[calc(100dvh-4rem)]`) no matter how many wishes accumulate — the page never grows past one screen here. The comment list scrolls internally (`overflow-y-auto`) instead, with a soft fade at its bottom hinting more wishes below (the site hides scrollbars globally, CONTENT_DESIGN.md §18, so the fade is the scrollability cue). **Revised (2026-08-15):** previously the list grew the page unbounded; it was capped + given an internal scroller so every section stays one viewport tall (which the §24 page-turn scroll relies on).
-- **Assets:** background reused from `opening/background_opening.png` (no dedicated folder of its own) + `components/lace banner.png` as a small side accent — decoration only, doesn't sit over the form fields or wish list (would hurt usability/contrast if it did). Form + list sit in a translucent white panel for contrast; input fields keep an opaque white background regardless.
+- **Assets:** ~~background reused from `opening/background_opening.png` (no dedicated folder of its own)~~ **superseded (2026-08-16, CONTENT_DESIGN.md §39): background image removed, shared fixed `BackgroundLayer` shows through instead** + `components/lace banner.png` as a small side accent — decoration only, doesn't sit over the form fields or wish list (would hurt usability/contrast if it did). Form + list sit in a translucent white panel for contrast; input fields keep an opaque white background regardless.
 
-### Page 9 — Digital Gift  `id: gift` · default: **off**
+### Page 10 — Digital Gift  `id: gift` · default: **off**
 
 ```
 ┌──────────────────────────────┐
@@ -229,9 +248,9 @@ Revised (Phase 7) — **two separate full-screen sections** instead of one combi
 - Account name/number with a copy-to-clipboard button.
 - Optional QR image for e-wallet transfer.
 - Purely informational — no payment flow on-site.
-- **Assets:** background reused from `bride & groom/Background_bride&groom.png` (no dedicated folder of its own) + a small `components/orchid.png` accent near the heading. The QR image itself stays the hand-drawn placeholder (`public/gift/qr.svg`) — no real QR code asset exists yet. Content sits in a translucent white panel for contrast.
+- **Assets:** ~~background reused from `bride & groom/Background_bride&groom.png` (no dedicated folder of its own)~~ **superseded (2026-08-16, CONTENT_DESIGN.md §39): background image removed, shared fixed `BackgroundLayer` shows through instead** + a small `components/orchid.png` accent near the heading. The QR image itself stays the hand-drawn placeholder (`public/gift/qr.svg`) — no real QR code asset exists yet. Content sits in a translucent white panel for contrast.
 
-### Page 10 — Share / Closing  `id: share` · default: **on**
+### Page 11 — Share / Closing  `id: share` · default: **on**
 
 ```
 ┌──────────────────────────────┐
@@ -257,7 +276,7 @@ Revised (Phase 7) — **two separate full-screen sections** instead of one combi
 - **Revised (Phase 8, CONTENT_DESIGN.md §27–§28):** rebuilt from the `ig_v2/` layers directly rather than the flattened composite used in the initial Phase 7 version — background + frame both full-bleed behind the text panel. Portrait pinned to the section's true bottom edge as a footer (not floating mid-section with dead space beneath it, which is what it looked like at first), enlarged. Closing signature is the hand-lettered `name/ara-zharfan.png` art (CONTENT_DESIGN.md §14) instead of script-font text.
 - **Just one action now:** "Watch Live on Instagram" (with an inline Instagram glyph icon) to `instagram.com/hauradhiyaa`. Copy Link / Share-to-WhatsApp buttons were removed (§28) — no longer part of this page.
 - Still doubles as the page's Open Graph preview target — when the link is pasted into a chat, the OG title/description/image (not this section specifically) is what shows.
-- **Assets:** `ig_v2/ig_v2-1.png` (background) + `ig_v2-2.png` (frame) + `ig_v2-3.png` (portrait, bottom-pinned footer) + `name/ara-zharfan.png`. (`closing/`'s own `Background_closing.png`/`doodle_closing.png`/`frame_closing.png` are no longer used here. `outro/` was originally a spare unused folder — now reused for Love Story's background instead, see Page 5. `location option 2/` is likewise no longer unused — now Countdown's background, see Page 3.)
+- **Assets:** ~~`ig_v2/ig_v2-1.png` (background) +~~ `ig_v2-2.png` (frame) + `ig_v2-3.png` (portrait, bottom-pinned footer) + `name/ara-zharfan.png`. `ig_v2-1.png` removed 2026-08-16, superseded by the shared fixed `BackgroundLayer` (CONTENT_DESIGN.md §39). (`closing/`'s own `Background_closing.png`/`doodle_closing.png`/`frame_closing.png` are no longer used here. `outro/` was originally a spare unused folder — now reused for Love Story's background instead, see Page 6 — Love Story's own background layer has since also been superseded, per above. `location option 2/` is likewise no longer unused — now Countdown's background, see Page 5 — also since superseded.)
 
 ### Floating, on every page (not a page itself)  `musicEnabled` flag · default: **on**
 
@@ -288,9 +307,11 @@ Revised (Phase 7) — **two separate full-screen sections** instead of one combi
 ## Resolved
 
 - Page order confirmed as above.
-- Defaults revised (2026-08-10): Love Story, Gallery, and Digital Gift now default **off**; Cover, Countdown, Couple Profile, A Note From Us, Guest Wishes, and Share/Closing stay **on**. Each page's heading above shows its actual current default — anything can be toggled either way per CONTENT_DESIGN.md §2.
+- Defaults revised (2026-08-10): Love Story, Gallery, and Digital Gift now default **off**; Cover, Countdown, Couple Profile, A Note From Us, Guest Wishes, and Share/Closing stay **on**. Each page's heading above shows its actual current default — anything can be toggled either way per CONTENT_DESIGN.md §2. **Superseded 2026-08-15:** Couple Profile also switched to **off** by default — see the Phase 10/11 entry below.
 - Every page confirmed to have a full background image from the asset pack (some reused across pages without a dedicated composition) — see CONTENT_DESIGN.md §12 for the complete assignment.
 - Phase 7 (2026-08-10): Couple Profile is now two pages (3a groom, 3b bride) instead of one combined layout; couple's names render as hand-lettered signature art (`name/`) instead of script-font text on Cover, Couple Profile, and Share; Share's hero illustration switched to the `ig_v2/` story card plus a new Instagram live link; site-wide fixes — forced light-only theme (contrast bug), scroll lock + hidden scrollbar pre-open, Cover's open button gated on asset loading, and a centered max-width column on wide viewports. See CONTENT_DESIGN.md §13–§20.
 - Phase 9 (2026-08-15): Cover's wedding date removed from both the pre-tap overlay and the revealed hero (the date lives only on Countdown now); wheel scrolling converted to a page-turn gesture — one section per 35%-of-viewport wheel input, keyboard/touch still use the CSS snap (CONTENT_DESIGN.md §24); Guest Wishes card capped to one viewport with the comment list as an internal scroller. See CONTENT_DESIGN.md §24 and the Page 1/Page 7 entries above.
 - Phase 10 (2026-08-15): new Main Announcement page inserted right after Cover (now Page 2 — Bismillah + formal announcement text in a `letter_frame.png` card); Cover's own revealed in-flow hero section removed, so "Tap to Open" now lands directly on Main Announcement instead of a second, near-duplicate greeting screen first; A Note From Us moved from Page 4 to Page 7 (after Gallery) to make room; every page from Countdown onward renumbered accordingly. Language toggle (id/en) made guest-facing — floating button, flag-emoji notation, usable from the Cover overlay before opening. See CONTENT_DESIGN.md §33–§35 and the Page 1/Page 2/Page 7/floating-controls entries above.
 - Phase 10/11 (2026-08-15): Countdown and Couple Profile swapped — Countdown is now Page 4, Couple Profile Page 3 (announcement → couple intro → countdown). Page numbers in the entry headers above reflect this; Page 7's "Moved (Phase 10)" note and Page 4's "Moved (2026-08-15)" note record the history.
+- Phase 10/11, later same day (2026-08-15): Couple Profile (Page 3) switched off by default — its bride/groom portraits now stand in Main Announcement's (Page 2) bottom-left/bottom-right corners instead, sized by screenshot review rather than pure geometry (groom deliberately taller than bride, both intentionally bleeding past the section's edge via `overflow-hidden` cropping). Page 2's date (`dateIntro` + date) moved out of its own bottom-anchored zone into the name block's normal flow, two lines below the groom's name. See CONTENT_DESIGN.md §37 and the Page 2/Page 3 entries above.
+- 2026-08-16: new Prolog page (`id: prolog`) inserted right after Cover — two birds flying together + the QS. Ar-Rum: 21 quote, moved off Countdown (which is timer-only again). Every page from Main Announcement onward renumbered up by one (Main Announcement 2→3, Couple Profile 3→4, Countdown 4→5, Love Story 5→6, Gallery 6→7, A Note From Us 7→8, Guest Wishes 8→9, Digital Gift 9→10, Share/Closing 10→11). See CONTENT_DESIGN.md §41 and the Page 2/Page 5 entries above.
